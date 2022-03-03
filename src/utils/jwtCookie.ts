@@ -1,8 +1,7 @@
 import { CookieOptions, Response } from "express";
-import Post from "../models/Post";
 import { IUser } from "../models/User";
 
-const sendToken = async (user: IUser, status: number, res: Response) => {
+const sendToken = (user: IUser, status: number, res: Response) => {
   const token = user.getJwtToken();
   const COOKIE_EXPIRES_TIME: number = Number.parseInt(
     process.env.COOKIE_EXPIRES_TIME || "7"
@@ -13,14 +12,10 @@ const sendToken = async (user: IUser, status: number, res: Response) => {
     httpOnly: true,
   };
 
-  const { password, ...others } = user._doc;
-  const posts = await Post.find({ user: user._id });
-  others.posts = posts;
-
   res.status(status).cookie("token", token, cookieOptions).json({
     success: true,
     token,
-    user: others,
+    user,
   });
 };
 
