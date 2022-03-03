@@ -3,49 +3,74 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export enum Roles {
-  admin = "admin",
-  user = "user",
+export enum Privacy {
+  private = "private",
+  public = "public",
 }
-
 export interface Avatar {
   public_id: string;
   url: string;
 }
 
 export interface IUser extends Document {
-  firstName: string;
-  lastName: string;
-  role?: Roles;
+  fullname: string;
+  bio?: string;
   email: string;
+  followers?: [Schema.Types.ObjectId];
+  followings?: [Schema.Types.ObjectId];
+  username: string;
+  privacy?: Privacy;
   password: string;
   avatar?: Avatar;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
+  _doc: any;
   getJwtToken(): string;
   comparePassword(passwordHash: string): boolean;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    firstName: {
+    fullname: {
       type: String,
-      required: [true, "Please enter your first name."],
+      required: [true, "Please enter your full name."],
       trim: true,
-      maxLength: [20, "First name shouldn't exceed 20 characters."],
+      maxLength: [20, "Name shouldn't exceed 20 characters."],
     },
-    lastName: {
+    bio: {
       type: String,
-      required: [true, "Please enter your last name."],
       trim: true,
-      maxLength: [20, "Last name shouldn't exceed 20 characters."],
+      default: "",
+      maxLength: [50, "Bio shouldn't exceed 50 characters."],
     },
-    role: { type: String, enum: Object.values(Roles), default: "user" },
     email: {
       type: String,
       unique: true,
       required: [true, "Please enter your email."],
       validate: [validator.isEmail, "Please enter valid email address."],
+    },
+    followers: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: [],
+    },
+    followings: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: [],
+    },
+    privacy: {
+      type: String,
+      enum: Object.values(Privacy),
+      default: Privacy.public,
+    },
+    username: {
+      type: String,
+      unique: true,
+      required: [true, "Please enter your username."],
+      trim: true,
+      lowercase: true,
+      validate: [validator.isSlug, "Please enter valid username."],
+      minLength: [5, "Password must have at least 6 characters."],
+      maxLength: [20, "Username shouldn't exceed 20 characters."],
     },
     password: {
       type: String,

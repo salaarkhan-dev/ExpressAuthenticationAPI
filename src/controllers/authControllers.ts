@@ -8,10 +8,10 @@ export const regsiterUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { firstName, lastName, email, password }: IUser = req.body;
+  const { fullname, email, username, password }: IUser = req.body;
   const user = await User.create({
-    firstName,
-    lastName,
+    fullname,
+    username,
     email,
     password,
     avatar: {
@@ -28,21 +28,22 @@ export const loginUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { email, password }: IUser = req.body;
-  if (!email || !password) {
-    return next(new ErrorException("Please provide email and password.", 400));
+  const { username, password }: IUser = req.body;
+  if (!username || !password) {
+    return next(
+      new ErrorException("Please provide username and password.", 400)
+    );
   }
-  const user = await User.findOne({ email }).select("+password");
+  const user = await User.findOne({ username }).select("+password");
   if (!user) {
     return next(
-      new ErrorException("Account with this email doesn't exist", 400)
+      new ErrorException("Account with this  username doesn't exist", 400)
     );
   }
   const isMatched = await user.comparePassword(password);
   if (!isMatched) {
-    return next(new ErrorException("Invalid email or password", 401));
+    return next(new ErrorException("Invalid username or password", 401));
   }
-
   sendToken(user, 200, res);
 };
 

@@ -16,7 +16,13 @@ const isAuthenticatedUser = async (
     );
   }
   const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
-  req.user = await User.findById(decoded["id"]);
+  const user = await User.findById(decoded["id"]);
+  if (!user) {
+    return next(
+      new ErrorException("Login first to get access to the resources", 401)
+    );
+  }
+  req.user = user;
   next();
 };
 
